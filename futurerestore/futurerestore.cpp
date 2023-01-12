@@ -745,7 +745,9 @@ void futurerestore::doRestore(const char *ipsw){
 
         /* TODO: make this nicer!
            for now a simple pointercompare should be fine, because both plist_t should point into the same buildidentity inside the buildmanifest */
-        if (ticketIdentity != build_identity ){
+        if (_skipBlob) {
+            info("[WARNING] Not validating APTicket IM4M\n");
+        }else if (ticketIdentity != build_identity ){
             error("BuildIdentity selected for restore does not match APTicket\n\n");
             printf("BuildIdentity selected for restore:\n");
             img4tool::printGeneralBuildIdentityInformation(build_identity);
@@ -982,7 +984,7 @@ void futurerestore::doRestore(const char *ipsw){
             if (strncmp(client->version, "10.", 3))//if pwnrecovery send all components decrypted, unless we're dealing with iOS 10
                 client->recovery_custom_component_function = get_custom_component;
         }
-    }else if (!_rerestoreiOS9){
+    }else if (!_rerestoreiOS9 && !_skipBlob){
         /* now we load the iBEC */
         retassure(!recovery_send_ibec(client, build_identity),"ERROR: Unable to send iBEC\n");
 

@@ -1,0 +1,36 @@
+name: Compile futurerestore
+on: [push]
+jobs:
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run compile script
+        run: ./compile.sh
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: futurerestore_linux
+          path: bin/
+
+  win:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+
+      - name: Run compile script
+        run: ./compile.sh
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: futurerestore_win
+          path: bin/
