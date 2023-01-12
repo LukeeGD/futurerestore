@@ -49,6 +49,7 @@ static struct option longopts[] = {
     { "use-pwndfu",         no_argument,            NULL, '3' },
     { "just-boot",          optional_argument,      NULL, '4' },
 #endif
+    { "skip-blob",          no_argument,            NULL, 'f' },
     { NULL, 0, NULL, 0 }
 };
 
@@ -58,6 +59,7 @@ static struct option longopts[] = {
 #define FLAG_LATEST_BASEBAND    1 << 3
 #define FLAG_NO_BASEBAND        1 << 4
 #define FLAG_IS_PWN_DFU         1 << 5
+#define FLAG_SKIP_BLOB          1 << 6
 
 void cmd_help(){
     printf("Usage: futurerestore [OPTIONS] iPSW\n");
@@ -134,7 +136,7 @@ int main_r(int argc, const char * argv[]) {
         return -1;
     }
 
-    while ((opt = getopt_long(argc, (char* const *)argv, "ht:b:p:s:m:wude0123", longopts, &optindex)) > 0) {
+    while ((opt = getopt_long(argc, (char* const *)argv, "ht:b:p:s:m:wude01234f", longopts, &optindex)) > 0) {
         switch (opt) {
             case 't': // long option: "apticket"; can be called as short option
                 apticketPaths.push_back(optarg);
@@ -175,6 +177,9 @@ int main_r(int argc, const char * argv[]) {
                 break;
             break;
 #endif
+            case 'f': // long option: "skip-blob";
+                flags |= FLAG_SKIP_BLOB;
+                break;
             case 'e': // long option: "exit-recovery"; can be called as short option
                 exitRecovery = true;
                 break;
@@ -221,6 +226,10 @@ int main_r(int argc, const char * argv[]) {
     try {
         if (apticketPaths.size()) client.loadAPTickets(apticketPaths);
         
+        if(flags & FLAG_SKIP_BLOB) {
+            client.skipBlobValidation();
+        }
+
         if (!(
               ((apticketPaths.size() && ipsw)
                && ((basebandPath && basebandManifestPath) || ((flags & FLAG_LATEST_BASEBAND) || (flags & FLAG_NO_BASEBAND)))
@@ -287,7 +296,7 @@ int main_r(int argc, const char * argv[]) {
                 }
             }
         }
-        client.downloadLatestFirmwareComponents();
+        //client.downloadLatestFirmwareComponents();
         client.putDeviceIntoRecovery();
         if (flags & FLAG_WAIT){
             client.waitForNonce();
