@@ -38,6 +38,8 @@ if [ ! -f "/usr/local/lib/.DEP-CACHED" ]; then
     echo 'step 10:'
     git clone https://github.com/nih-at/libzip.git
     cd libzip
+    git reset 2d75609 --hard
+    git clean -fxd
     echo 'step 11:'
     git apply $BASE/libzip.patch
     echo 'step 12:'
@@ -51,6 +53,8 @@ if [ ! -f "/usr/local/lib/.DEP-CACHED" ]; then
     cd $BASE
     git clone --recursive https://github.com/libimobiledevice/libplist.git
     cd libplist
+    git reset ebf2fdb --hard
+    git clean -fxd
     echo 'step 16:'
     ./autogen.sh --disable-dependency-tracking --disable-silent-rules --disable-shared --prefix=/usr/local --without-cython --disable-debug CC='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang' CXX='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++' LD='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld' RANLIB='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib' AR='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar' CFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include' CXXFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include'
     echo 'step 16:'
@@ -61,6 +65,8 @@ if [ ! -f "/usr/local/lib/.DEP-CACHED" ]; then
     cd $BASE
     git clone --recursive https://github.com/libimobiledevice/libusbmuxd.git
     cd libusbmuxd
+    git reset 3eb50a0 --hard
+    git clean -fxd
     echo 'step 19:'
     ./autogen.sh --disable-dependency-tracking --disable-silent-rules --disable-shared --prefix=/usr/local --disable-debug CC='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang' CXX='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++' LD='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld' RANLIB='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib' AR='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar' CFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include' CXXFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include'
     echo 'step 20:'
@@ -71,6 +77,8 @@ if [ ! -f "/usr/local/lib/.DEP-CACHED" ]; then
     cd $BASE
     git clone --recursive https://github.com/libimobiledevice/libimobiledevice.git
     cd libimobiledevice
+    git reset 25059d4 --hard
+    git clean -fxd
     echo 'step 23:'
     ./autogen.sh --disable-dependency-tracking --disable-silent-rules --disable-shared --prefix=/usr/local --disable-debug --without-cython CC='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang' CXX='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++' LD='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld' RANLIB='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib' AR='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar' CFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include' CXXFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include'
     echo 'step 24:'
@@ -81,6 +89,8 @@ if [ ! -f "/usr/local/lib/.DEP-CACHED" ]; then
     cd $BASE
     git clone --recursive https://github.com/libimobiledevice/libirecovery.git
     cd libirecovery
+    git reset 1132470 --hard
+    git clean -fxd
     echo 'step 27:'
     git apply $BASE/libirecovery.patch
     ./autogen.sh --disable-dependency-tracking --disable-silent-rules --disable-shared --prefix=/usr/local --disable-debug CC='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang' CXX='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++' LD='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld' RANLIB='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib' AR='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar' CFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include' CXXFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include'
@@ -92,36 +102,20 @@ if [ ! -f "/usr/local/lib/.DEP-CACHED" ]; then
     cd $BASE
     git clone --recursive https://github.com/tihmstar/libgeneral.git
     cd libgeneral
+    git reset b04a27d --hard
+    git clean -fxd
     echo 'step 31:'
     ./autogen.sh --disable-dependency-tracking --disable-silent-rules --disable-shared --prefix=/usr/local --disable-debug CC='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang' CXX='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++' LD='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld' RANLIB='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib' AR='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar' CFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include' CXXFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include'
     echo 'step 32:'
     gmake -j16
     echo 'step 33:'
     gmake -j16 install
-    echo 'step 34:'
-    cd $BASE
-    git clone --recursive https://github.com/tihmstar/libinsn.git
-    cd libinsn
-    echo 'step 35:'
-    ./autogen.sh --disable-dependency-tracking --disable-silent-rules --disable-shared --prefix=/usr/local --disable-debug CC='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang' CXX='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++' LD='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld' RANLIB='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib' AR='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar' CFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include' CXXFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include'
-    echo 'step 36:'
-    gmake -j16
-    echo 'step 37:'
-    gmake -j16 install
-    echo 'step 38:'
-    cd $BASE
-    git clone --recursive https://github.com/tihmstar/liboffsetfinder64.git
-    cd liboffsetfinder64
-    echo 'step 39:'
-    ./autogen.sh --disable-dependency-tracking --disable-silent-rules --disable-shared --prefix=/usr/local --disable-debug CC='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang' CXX='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++' LD='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld' RANLIB='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib' AR='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar' CFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include' CXXFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include'
-    echo 'step 40:'
-    gmake -j16
-    echo 'step 41:'
-    gmake -j16 install
     echo 'step 42:'
     cd $BASE
     git clone --recursive https://github.com/tihmstar/libfragmentzip.git
     cd libfragmentzip
+    git reset aaf6fae --hard
+    git clean -fxd
     echo 'step 43:'
     ./autogen.sh --disable-dependency-tracking --disable-silent-rules --disable-shared --prefix=/usr/local --disable-debug CC='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang' CXX='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++' LD='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld' RANLIB='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib' AR='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar' CFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include' CXXFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include'
     echo 'step 44:'
@@ -132,6 +126,8 @@ if [ ! -f "/usr/local/lib/.DEP-CACHED" ]; then
     cd $BASE
     git clone --recursive https://github.com/tihmstar/img4tool.git
     cd img4tool
+    git reset aca6cf0 --hard
+    git clean -fxd
     echo 'step 47:'
     ./autogen.sh --disable-dependency-tracking --disable-silent-rules --disable-shared --prefix=/usr/local --disable-debug CC='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang' CXX='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++' LD='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld' RANLIB='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib' AR='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar' CFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include' CXXFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include'
     echo 'step 48:'
@@ -141,21 +137,9 @@ if [ ! -f "/usr/local/lib/.DEP-CACHED" ]; then
     echo 'step 50:'
     cd $BASE
     echo 'step 51:'
-    unzip xpwn.zip
     unzip libpng.zip
     rm -rv /usr/local/lib/libpng16.*
     cp -v $BASE/libpng16.a /usr/local/lib/
-    cp -v $BASE/libxpwn.a /usr/local/lib/
-    cp -v $BASE/libcommon.a /usr/local/lib/
-    cp -rv $BASE/xpwn_include/* /usr/local/include/
-    git clone --recursive https://github.com/tihmstar/libipatcher.git
-    cd libipatcher
-    echo 'step 52:'
-    ./autogen.sh --disable-dependency-tracking --disable-silent-rules --disable-shared --prefix=/usr/local --disable-debug CC='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang' CXX='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++' LD='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld' RANLIB='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib' AR='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar' CFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include' CXXFLAGS='-isysroot /usr/local/SYSROOT/MacOSX10.13.sdk -isystem=/usr/local/SYSROOT/MacOSX10.13.sdk/usr/include'
-    echo 'step 53:'
-    gmake -j16
-    echo 'step 54:'
-    gmake -j16 install
     echo 'step 55:'
     touch /usr/local/lib/.DEP-CACHED
     echo 'End'
