@@ -70,8 +70,8 @@ if ! test -f "$DEPSDIR/libressl-$LIBRESSL_VER/include/openssl/opensslv.h"; then
 else
   echo -e "${BOLD}* LibreSSL headers: ${GREEN}found${NORMAL}"
 fi
-LIMD_CFLAGS="-I$DEPSDIR/include"
-LIMD_LIBS="-L$DEPSDIR/lib -limobiledevice-1.0 -lplist-2.0"
+LIMD_CFLAGS="-I$DEPSDIR/libressl-$LIBRESSL_VER/include -I$DEPSDIR/include"
+LIMD_LIBS="-Xlinker $LIBSSL -Xlinker $LIBCRYPTO -L$DEPSDIR/lib -limobiledevice-1.0 -lplist-2.0"
 LIMD_VERSION=`cat /usr/local/libimobiledevice-1.0.pc |grep Version: |cut -d " " -f 2`
 IRECV_CFLAGS="-I$DEPSDIR/include"
 IRECV_LIBS="-L$DEPSDIR/lib -lirecovery-1.0"

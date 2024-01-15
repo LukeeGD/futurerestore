@@ -759,6 +759,12 @@ void futurerestore::doRestore(const char *ipsw){
                 printf("This APTicket can't be used for restoring this firmware\n");
             }
             reterror("APTicket can't be used for this restore\n");
+        }else{
+            if (!img4tool::isIM4MSignatureValid({im4m.first,im4m.second})){
+                printf("IM4M signature is not valid!\n");
+                reterror("APTicket can't be used for this restore\n");
+            }
+            printf("Verified APTicket to be valid for this restore\n");
         }
     }else if (_enterPwnRecoveryRequested){
         info("[WARNING] skipping ramdisk hash check, since device is in pwnDFU according to user\n");
