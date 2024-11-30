@@ -202,11 +202,6 @@ futurerestore::futurerestore(bool isUpdateInstall, bool isPwnDfu, bool noIBSS, b
     if (stat(futurerestoreTempPath.c_str(), &st) == -1) safe_mkdir(futurerestoreTempPath.c_str(), 0755);
 #endif
 
-// TODO: implement windows CI and enable update check
-#ifndef WIN32
-    this->checkForUpdates();
-#endif
-
     nocache = 1; //tsschecker nocache
     _foundnonce = -1;
     _useCustomLatest = false;
@@ -1441,8 +1436,8 @@ void futurerestore::doRestore(const char *ipsw) {
                   "Device did not disconnect. Possibly invalid iBEC. If you're using a USB-C to Lightning cable, switch to USB-A to Lightning (see issue #67)");
 #else
         retassure((client->mode == MODE_UNKNOWN || (mutex_unlock(&client->device_event_mutex), 0)),
-                  "Device did not disconnect. Possibly invalid iBEC. Reset device and try again");  
-#endif  
+                  "Device did not disconnect. Possibly invalid iBEC. Reset device and try again");
+#endif
         mutex_unlock(&client->device_event_mutex);
 
         debug("Waiting for device to reconnect...\n");
@@ -1453,8 +1448,8 @@ void futurerestore::doRestore(const char *ipsw) {
                   "Device did not disconnect. Possibly invalid iBEC. If you're using a USB-C to Lightning cable, switch to USB-A to Lightning (see issue #67)");
 #else
         retassure((client->mode == MODE_RECOVERY || (mutex_unlock(&client->device_event_mutex), 0)),
-                  "Device did not disconnect. Possibly invalid iBEC. Reset device and try again");    
-#endif    
+                  "Device did not disconnect. Possibly invalid iBEC. Reset device and try again");
+#endif
         mutex_unlock(&client->device_event_mutex);
     }
 
