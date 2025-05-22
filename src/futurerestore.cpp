@@ -31,6 +31,7 @@ extern "C" {
 #include "tsschecker.h"
 #include "download.h"
 #include <zip.h>
+#include <libirecovery.h>
 }
 
 #ifdef safe_mkdir
@@ -215,20 +216,23 @@ futurerestore::futurerestore(bool isUpdateInstall, bool isPwnDfu, bool noIBSS, b
 bool futurerestore::init() {
     if (_didInit) return _didInit;
 //    If device is in an invalid state, don't check if it supports img4
-    if ((_didInit = check_mode(_client) != _MODE_UNKNOWN)) {
+    irecv_device_event_subscribe(&_client->irecv_e_ctx, irecv_event_cb, _client);
+    idevice_event_subscribe(idevice_event_cb, _client);
+    _client->idevice_e_ctx = (void *)idevice_event_cb;
+    if ((_didInit = getDeviceMode(false, true) != _MODE_UNKNOWN)) {
         if (!(_client->image4supported = is_image4_supported(_client))) {
             info("[INFO] 32-bit device detected\n");
         } else {
             info("[INFO] 64-bit device detected\n");
         }
     }
-    if(_client) {
-        dfu_client_free(_client);
-    }
-    if(_client) {
-        recovery_client_free(_client);
-    }
-    getDeviceMode(true);
+//    if(_client) {
+//        dfu_client_free(_client);
+//    }
+//    if(_client) {
+//        recovery_client_free(_client);
+//    }
+    getDeviceMode(false, true);
 #ifdef __APPLE__
     daemonManager(false);
 #endif
@@ -240,14 +244,24 @@ uint64_t futurerestore::getDeviceEcid() const {
     return _client->ecid;
 }
 
-int futurerestore::getDeviceMode(bool reRequest) const {
-    retassure(_didInit, "did not init\n");
+int futurerestore::getDeviceMode(bool reRequest, bool init) const {
+    if(!init) {
+      retassure(_didInit, "did not init\n");
+    }
+    mutex_lock(&_client->device_event_mutex);
+    cond_wait_timeout(&_client->device_event_cond, &_client->device_event_mutex, 10);
     if (!reRequest && _client->mode && _client->mode->index != _MODE_UNKNOWN) {
-        return _client->mode->index;
+      mutex_unlock(&_client->device_event_mutex);
+      return _client->mode->index;
     } else {
-        dfu_client_free(_client);
-        recovery_client_free(_client);
-        return check_mode(_client);
+      dfu_client_free(_client);
+      recovery_client_free(_client);
+      int mode = _MODE_UNKNOWN;
+      if (_client->mode) {
+        mode = _client->mode->index;
+      }
+      mutex_unlock(&_client->device_event_mutex);
+      return mode;
     }
 }
 
@@ -261,9 +275,12 @@ void futurerestore::putDeviceIntoRecovery() {
     getDeviceMode(false);
     info("Found device in %s mode\n", _client->mode->string);
     if (_client->mode == MODE_NORMAL) {
-        irecv_device_event_subscribe(&_client->irecv_e_ctx, irecv_event_cb, _client);
-        idevice_event_subscribe(idevice_event_cb, _client);
-        _client->idevice_e_ctx = (void *) idevice_event_cb;
+//        if(!_client->irecv_e_ctx)
+//          irecv_device_event_subscribe(&_client->irecv_e_ctx, irecv_event_cb, _client);
+//        if(!_client->idevice_e_ctx) {
+//          idevice_event_subscribe(idevice_event_cb, _client);
+//          _client->idevice_e_ctx = (void *)idevice_event_cb;
+//        }
 #ifdef HAVE_LIBIPATCHER
         retassure(!_isPwnDfu, "isPwnDfu enabled, but device was found in normal mode\n");
 #endif
@@ -323,7 +340,7 @@ plist_t futurerestore::nonceMatchesApTickets() {
     if (_rerestoreiOS9) {
         info("Skipping ApNonce check\n");
     } else {
-        recovery_get_ap_nonce(_client, &realnonce, &realNonceSize);
+        recovery_get_ap_nonce(_client, &realnonce, (unsigned int *)&realNonceSize);
 
         info("Got ApNonce from device: ");
         int i = 0;
@@ -376,7 +393,7 @@ std::pair<const char *, size_t> futurerestore::nonceMatchesIM4Ms() {
 
     unsigned char *realnonce;
     int realNonceSize = 0;
-    recovery_get_ap_nonce(_client, &realnonce, &realNonceSize);
+    recovery_get_ap_nonce(_client, &realnonce, (unsigned int *)&realNonceSize);
 
     std::vector<const char *> nonces;
 
@@ -430,7 +447,7 @@ void futurerestore::waitForNonce(std::vector<const char *> nonces, size_t nonceS
         while (getDeviceMode(true) != _MODE_RECOVERY) usleep(USEC_PER_SEC * 0.5);
         retassure(!recovery_client_new(_client), "Could not connect to device in recovery mode\n");
 
-        recovery_get_ap_nonce(_client, &realnonce, &realNonceSize);
+        recovery_get_ap_nonce(_client, &realnonce, (unsigned int *)&realNonceSize);
         info("Got ApNonce from device: ");
         for (int i = 0; i < realNonceSize; i++) {
             info("%02x ", realnonce[i]);
@@ -528,6 +545,7 @@ void futurerestore::loadAPTickets(const std::vector<const char *> &apticketPaths
         }
 
         plist_t ticket = plist_dict_get_item(apticket, (_client->image4supported) ? "ApImg4Ticket" : "APTicket");
+        info("ticket: %p\n", ticket);
         uint64_t im4msize = 0;
         plist_get_data_val(ticket, &im4m, &im4msize);
 
@@ -605,16 +623,23 @@ void futurerestore::enterPwnRecovery(plist_t build_identity, std::string bootarg
     std::string ibec_name(futurerestoreTempPath + "/ibec.");
 
     /* Assure device is in dfu */
-    irecv_device_event_subscribe(&_client->irecv_e_ctx, irecv_event_cb, _client);
-    idevice_event_subscribe(idevice_event_cb, _client);
-    _client->idevice_e_ctx = (void *) idevice_event_cb;
-    getDeviceMode(true);
+  dfu_client_free(_client);
+  retassure(((dfu_client_new(_client) == IRECV_E_SUCCESS)),
+            "Failed to connect to device in DFU Mode!");
+  recovery_client_free(_client);
+    int recv_mode = 0;
+    irecv_get_mode(_client->dfu->client, &recv_mode);
+    if(recv_mode != IRECV_K_DFU_MODE) {
+      _client->mode = MODE_RECOVERY;
+    } else {
+      _client->mode = MODE_DFU;
+    }
     mutex_lock(&_client->device_event_mutex);
     cond_wait_timeout(&_client->device_event_cond, &_client->device_event_mutex, 1000);
     retassure(((_client->mode == MODE_DFU) || (mutex_unlock(&_client->device_event_mutex), 0)),
               "Device isn't in DFU mode!");
-    retassure(((dfu_client_new(_client) == IRECV_E_SUCCESS) || (mutex_unlock(&_client->device_event_mutex), 0)),
-              "Failed to connect to device in DFU Mode!");
+//    retassure(((dfu_client_new(_client) == IRECV_E_SUCCESS) || (mutex_unlock(&_client->device_event_mutex), 0)),
+//              "Failed to connect to device in DFU Mode!");
     mutex_unlock(&_client->device_event_mutex);
     info("Device found in DFU Mode.\n");
 
@@ -818,7 +843,7 @@ void futurerestore::enterPwnRecovery(plist_t build_identity, std::string bootarg
         retassure(((recovery_client_new(_client) == IRECV_E_SUCCESS) ||
                    (mutex_unlock(&_client->device_event_mutex), 0)),
                   "Failed to connect to device in Recovery Mode!");
-        if (get_ap_nonce(_client, &_client->nonce, &_client->nonce_size) < 0) {
+        if (get_ap_nonce(_client, &_client->nonce, (unsigned int *)&_client->nonce_size) < 0) {
             reterror("Failed to get apnonce from device!");
         }
 
@@ -867,7 +892,7 @@ void futurerestore::enterPwnRecovery(plist_t build_identity, std::string bootarg
                        (mutex_unlock(&_client->device_event_mutex), 0)),
                       "Failed to connect to device in Recovery Mode after ApNonce hax!");
             printf("APnonce post-hax:\n");
-            if (get_ap_nonce(_client, &_client->nonce, &_client->nonce_size) < 0) {
+            if (get_ap_nonce(_client, &_client->nonce, (unsigned int *)&_client->nonce_size) < 0) {
                 reterror("Failed to get apnonce from device!");
             }
             assure(!irecv_send_command(_client->recovery->client, "bgcolor 255 255 0"));
@@ -1067,16 +1092,17 @@ void futurerestore::doRestore(const char *ipsw) {
     struct idevicerestore_client_t *client = _client;
     plist_t build_identity = nullptr;
 
-    client->ipsw = strdup(ipsw);
+    client->ipsw = ipsw_open(ipsw);
     if (_noRestore) client->flags |= FLAG_NO_RESTORE;
     if (_noRSEP) client->flags |= FLAG_NO_RSEP;
     if (!_isUpdateInstall) client->flags |= FLAG_ERASE;
 
-    if(!client->idevice_e_ctx) {
-        irecv_device_event_subscribe(&client->irecv_e_ctx, irecv_event_cb, client);
-        idevice_event_subscribe(idevice_event_cb, client);
-        client->idevice_e_ctx = (void *) idevice_event_cb;
-    }
+//    if(!_client->irecv_e_ctx)
+//      irecv_device_event_subscribe(&_client->irecv_e_ctx, irecv_event_cb, _client);
+//    if(!_client->idevice_e_ctx) {
+//      idevice_event_subscribe(idevice_event_cb, _client);
+//      _client->idevice_e_ctx = (void *)idevice_event_cb;
+//    }
 
     mutex_lock(&client->device_event_mutex);
     client->ignore_device_add_events = 0;
@@ -1099,7 +1125,7 @@ void futurerestore::doRestore(const char *ipsw) {
 
     info("Identified device as %s, %s\n", getDeviceBoardNoCopy(), getDeviceModelNoCopy());
 
-    retassure(!access(client->ipsw, F_OK), "ERROR: Firmware file %s does not exist.\n",
+    retassure(!access(client->ipsw->path, F_OK), "ERROR: Firmware file %s does not exist.\n",
               client->ipsw); // verify if ipsw file exists
 
     info("Extracting BuildManifest from iPSW\n");
@@ -1320,12 +1346,12 @@ void futurerestore::doRestore(const char *ipsw) {
       retassure((getDeviceMode(true) == _MODE_DFU) ||
                     (getDeviceMode(false) == _MODE_RECOVERY && _noIBSS),
                 "unexpected device mode\n");
-      if (client->irecv_e_ctx) {
-        irecv_device_event_unsubscribe(client->irecv_e_ctx);
-      }
-      if (client->idevice_e_ctx != nullptr) {
-        client->idevice_e_ctx = nullptr;
-      }
+//      if (client->irecv_e_ctx) {
+//        irecv_device_event_unsubscribe(client->irecv_e_ctx);
+//      }
+//      if (client->idevice_e_ctx != nullptr) {
+//        client->idevice_e_ctx = nullptr;
+//      }
       std::string bootargs;
       if (_boot_args != nullptr) {
         bootargs = _boot_args;
@@ -1334,9 +1360,9 @@ void futurerestore::doRestore(const char *ipsw) {
           bootargs.append("serial=0x3 ");
         }
         bootargs.append("rd=md0 ");
-        if (!_isUpdateInstall) {
-          bootargs.append("nand-enable-reformat=0x1 ");
-        }
+//        if (!_isUpdateInstall) {
+//          bootargs.append("nand-enable-reformat=0x1 ");
+//        }
         bootargs.append(
             "-v -restore debug=0x2014e keepsyms=0x1 amfi=0xff amfi_allow_any_signature=0x1 amfi_get_out_of_my_way=0x1 cs_enforcement_disable=0x1");
       }
@@ -1351,15 +1377,15 @@ void futurerestore::doRestore(const char *ipsw) {
         }
       }
       enterPwnRecovery(build_identity, bootargs);
-      if(_client->irecv_e_ctx) {
-          irecv_device_event_unsubscribe(_client->irecv_e_ctx);
-      }
-      if(_client->idevice_e_ctx != nullptr) {
-          _client->idevice_e_ctx = nullptr;
-      }
-      irecv_device_event_subscribe(&client->irecv_e_ctx, irecv_event_cb, _client);
-      idevice_event_subscribe(idevice_event_cb, client);
-      client->idevice_e_ctx = (void *) idevice_event_cb;
+//      if(_client->irecv_e_ctx) {
+//          irecv_device_event_unsubscribe(_client->irecv_e_ctx);
+//      }
+//      if(_client->idevice_e_ctx != nullptr) {
+//          _client->idevice_e_ctx = nullptr;
+//      }
+//      irecv_device_event_subscribe(&client->irecv_e_ctx, irecv_event_cb, _client);
+//      idevice_event_subscribe(idevice_event_cb, client);
+//      client->idevice_e_ctx = (void *) idevice_event_cb;
     }
 
     // Get filesystem name from build identity
@@ -1386,11 +1412,11 @@ void futurerestore::doRestore(const char *ipsw) {
         }
         strcpy(tmpf, client->cache_dir);
         strcat(tmpf, "/");
-        char *ipswtmp = strdup(client->ipsw);
+        char *ipswtmp = strdup(client->ipsw->path);
         strcat(tmpf, basename(ipswtmp));
         free(ipswtmp);
     } else {
-        strcpy(tmpf, client->ipsw);
+        strcpy(tmpf, client->ipsw->path);
     }
     char *p = strrchr(tmpf, '.');
     if (p) {
@@ -1566,8 +1592,15 @@ void futurerestore::doRestore(const char *ipsw) {
     retassure(client->mode == MODE_RECOVERY, "failed to reconnect to device in recovery (iBEC) mode\n");
 
     //do magic
-    if (_client->image4supported) get_sep_nonce(client, &client->sepnonce, &client->sepnonce_size);
-    get_ap_nonce(client, &client->nonce, &client->nonce_size);
+    if (_client->image4supported) get_sep_nonce(client, &client->sepnonce, (unsigned int *)&client->sepnonce_size);
+    get_ap_nonce(_client, &_client->nonce, (unsigned int *)&_client->nonce_size);
+
+    if (_client->image4supported && !_setNonce) {
+      info("getting SEP ticket\n");
+      retassure(_client->sepfwdatasize && _client->sepfwdata, "SEP is not loaded, refusing to continue");
+      retassure(!get_tss_response(client, client->sepBuildIdentity, &client->septss),
+                "ERROR: Unable to get signing tickets for SEP\n");
+    }
 
     if (client->mode == MODE_RECOVERY) {
         retassure(client->srnm, "ERROR: Could not retrieve device serial number. Can't continue.\n");
@@ -1588,13 +1621,6 @@ void futurerestore::doRestore(const char *ipsw) {
         recovery_client_free(client);
     }
 
-    if (_client->image4supported && !_setNonce) {
-        info("getting SEP ticket\n");
-        retassure(!get_tss_response(client, client->sepBuildIdentity, &client->septss),
-                  "ERROR: Unable to get signing tickets for SEP\n");
-        retassure(_client->sepfwdatasize && _client->sepfwdata, "SEP is not loaded, refusing to continue");
-    }
-
     mutex_lock(&client->device_event_mutex);
     debug("Waiting for device to enter restore mode...\n");
     cond_wait_timeout(&client->device_event_cond, &client->device_event_mutex, 180000);
@@ -1603,7 +1629,7 @@ void futurerestore::doRestore(const char *ipsw) {
     mutex_unlock(&client->device_event_mutex);
 
     info("About to restore device... \n");
-    int result = restore_device(client, build_identity, filesystem);
+    int result = restore_device(client, build_identity);
     if (result == 2) return;
     else retassure(!(result), "ERROR: Unable to restore device\n");
 }
@@ -1812,6 +1838,8 @@ const char *futurerestore::getDeviceModelNoCopy() {
                 break;
         }
     }
+
+    retassure(_client->device, "failed to get device!");
 
     return _model = _client->device->product_type;
 }

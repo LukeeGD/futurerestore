@@ -119,7 +119,7 @@ public:
     struct idevicerestore_client_t* _client;
     explicit futurerestore(bool isUpdateInstall = false, bool isPwnDfu = false, bool noIBSS = false, bool setNonce = false, bool serial = false, bool noRestore = false, bool noRSEP = false);
     bool init();
-    int getDeviceMode(bool reRequest) const;
+    int getDeviceMode(bool reRequest, bool init = false) const;
     uint64_t getDeviceEcid() const;
     void putDeviceIntoRecovery();
     void setAutoboot(bool val) const;
