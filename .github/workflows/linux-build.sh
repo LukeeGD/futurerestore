@@ -6,6 +6,8 @@ export WORKFLOW_ROOT=${TMPDIR}/Builder/repos/futurerestore/.github/workflows
 export DEP_ROOT=${TMPDIR}/Builder/repos/futurerestore/dep_root
 export BASE=${TMPDIR}/Builder/repos/futurerestore/
 
+patch $BASE/external/idevicerestore/src/recovery.c < $BASE/external/recovery.patch
+
 cd ${BASE}
 ln -sf ${DEP_ROOT}/Linux_x86_64_Release/{lib/,include/}  ${DEP_ROOT}/
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=$(which make) -DCMAKE_C_COMPILER=$(which clang) -DCMAKE_MESSAGE_LOG_LEVEL="WARNING" -DCMAKE_CXX_COMPILER=$(which clang++) -G "CodeBlocks - Unix Makefiles" -S ./ -B cmake-build-release-x86_64 -DARCH=x86_64 -DCMAKE_C_COMPILER=clang-15 -DCMAKE_CXX_COMPILER=clang++-15 -DCMAKE_LINKER=ld.lld-15 -DNO_PKGCFG=ON

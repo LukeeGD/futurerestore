@@ -10,7 +10,6 @@
 *.la
 *.lo
 *.o
-*.patch
 *.po
 *.so
 *.swp
