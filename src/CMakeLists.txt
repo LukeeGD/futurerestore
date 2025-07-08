@@ -64,6 +64,8 @@ else()
     if("${CMAKE_HOST_SYSTEM_NAME}" MATCHES "Darwin")
         target_link_libraries(futurerestore PRIVATE
                 compression
+                bz2
+                lzma
                 "-framework CoreFoundation"
                 "-framework IOKit")
 elseif("${CMAKE_HOST_SYSTEM_NAME}" MATCHES "MSYS" OR "${CMAKE_HOST_SYSTEM_NAME}" MATCHES "Windows")
