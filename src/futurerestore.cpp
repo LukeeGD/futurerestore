@@ -1420,7 +1420,7 @@ void futurerestore::doRestore(const char *ipsw) {
                 0)//if pwnrecovery send all components decrypted, unless we're dealing with iOS 10
                 client->recovery_custom_component_function = get_custom_component;
         }
-    } else if (!_rerestoreiOS9) {
+    } else if (!_rerestoreiOS9 && !_skipBlob2) {
 
         /* now we load the iBEC */
         retassure(!recovery_send_ibec(client, build_identity), "ERROR: Unable to send iBEC\n");
