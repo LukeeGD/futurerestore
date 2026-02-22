@@ -31,6 +31,10 @@ extern "C" {
 #include "tsschecker.h"
 #include "download.h"
 #include <zip.h>
+#ifdef __APPLE__
+#include <bsm/audit.h>
+#include <pwd.h>
+#endif
 }
 
 #ifdef safe_mkdir
@@ -44,9 +48,16 @@ extern "C" {
 #define safe_mkdir(path, mode) mkdir(path)
 #else
 void safe_mkdir(const char *path, int mode) {
-    int newID = 1000;
+    int newUID = 1000;
+    int newGID = 1000;
 #ifdef __APPLE__
-    newID = 501;
+    newUID = 501;
+    newGID = 20;
+    getauid((au_id_t *)&newUID);
+    struct passwd *pw = getpwuid(newUID);
+    newGID = (int)pw->pw_gid;
+    initgroups(pw->pw_name, (int)pw->pw_gid);
+    setrgid(newGID);
 #else
     std::ifstream osReleaseStream(std::string("/etc/os-release"), std::ios::in | std::ios::binary);
     std::string osRelease;
@@ -61,29 +72,36 @@ void safe_mkdir(const char *path, int mode) {
                 osRelease.erase(pos, osRelease.length());
                 if(std::equal(osRelease.begin(), osRelease.end(), std::string("ubuntu").end())) {
                     if (getuid() == 999) {
-                        newID = 999;
+                        newUID = 999;
+                        newGID = 999;
                     }
                 }
             }
         }
     }
+    setresgid(newUID, newGID, newGID);
 #endif
     int id = (int)getuid();
     int id1 = (int)getgid();
     int id2 = (int)geteuid();
     int id3 = (int)getegid();
-    if(newID > -1) {
-        setuid(newID);
-        setgid(newID);
-        seteuid(newID);
-        setegid(newID);
+    if(newUID > -1 && newGID > -1) {
+        setuid(newUID);
+        setgid(newGID);
+        seteuid(newUID);
+        setegid(newGID);
     }
     __mkdir(path, mode);
-    if(newID > -1) {
+    if(newUID > -1 && newGID > -1) {
         setuid(id);
         setgid(id1);
         seteuid(id2);
         setegid(id3);
+#ifdef __APPLE__
+        setrgid(id1);
+#else
+        setresgid(id, id1, id1);
+#endif
     }
 }
 #endif
