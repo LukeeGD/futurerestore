@@ -7,6 +7,11 @@ export DEP_ROOT=${TMPDIR}/Builder/repos/futurerestore/dep_root
 export BASE=${TMPDIR}/Builder/repos/futurerestore/
 
 #sed -i 's/deb\.debian\.org/ftp.de.debian.org/g' /etc/apt/sources.list
+sed -i \
+  -e 's|deb http://deb.debian.org/debian buster main|deb http://archive.debian.org/debian buster main contrib non-free|g' \
+  -e 's|deb http://deb.debian.org/debian-security buster/updates main|deb http://archive.debian.org/debian-security buster/updates main contrib non-free|g' \
+  -e 's|deb http://deb.debian.org/debian buster-updates main|deb http://archive.debian.org/debian buster-backports main contrib non-free|g' \
+  /etc/apt/sources.list
 apt-get -qq update
 apt-get -yqq dist-upgrade
 apt-get install --no-install-recommends -yqq zstd curl gnupg2 lsb-release wget software-properties-common build-essential git autoconf automake libtool-bin pkg-config cmake zlib1g-dev libminizip-dev libpng-dev libreadline-dev libbz2-dev libudev-dev libudev1
@@ -14,7 +19,6 @@ cp -RpP /usr/bin/ld /
 rm -rf /usr/bin/ld /usr/lib/x86_64-linux-gnu/lib{usb-1.0,png*,readline}.so*
 chown -R 0:0 ${BASE}
 cd ${BASE}
-ls -lath
 git submodule update --init --recursive
 cd ${WORKFLOW_ROOT}
 curl -sO https://apt.llvm.org/llvm.sh
@@ -23,9 +27,9 @@ chmod +x llvm.sh
 ln -sf /usr/bin/ld.lld-15 /usr/bin/ld
 ln -sf /usr/bin/clang-15 /usr/bin/clang
 ln -sf /usr/bin/clang++-15 /usr/bin/clang++
-curl -sO -k https://cdn.cryptiiiic.com/bootstrap/linux_fix.tar.zst &
-curl -sO -k https://cdn.cryptiiiic.com/deps/static/Linux/x86_64/Linux_x86_64_1680647257_Debug.tar.zst &
-curl -sO -k https://cdn.cryptiiiic.com/deps/static/Linux/x86_64/Linux_x86_64_1680647257_Release.tar.zst &
+curl -sO https://cdn.cryptiiiic.com/bootstrap/linux_fix.tar.zst &
+curl -sO https://cdn.cryptiiiic.com/deps/static/Linux/x86_64/Linux_x86_64_1680647257_Debug.tar.zst &
+curl -sO https://cdn.cryptiiiic.com/deps/static/Linux/x86_64/Linux_x86_64_1680647257_Release.tar.zst &
 curl -sLO https://github.com/Kitware/CMake/releases/download/v3.23.2/cmake-3.23.2-linux-x86_64.tar.gz &
 wait
 rm -rf ${DEP_ROOT}/{lib,include} || true

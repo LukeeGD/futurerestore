@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+      - dev
+      - dev2
   pull_request:
   workflow_dispatch:
   schedule:
@@ -17,8 +19,8 @@ jobs:
   macOS:
     env:
       PROCURSUS: /opt/procursus
-      PATH: /opt/procursus/bin:/opt/procursus/libexec/gnubin:/usr/local/lib/ruby/gems/2.7.0/bin:/usr/local/opt/ruby@2.7/bin:/usr/local/opt/pipx_bin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Users/runner/Library/Android/sdk/ndk-bundle:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools:/Users/runner/.ghcup/bin:/Users/runner/hostedtoolcache/stack/2.7.3/x64
-    runs-on: macos-13
+      PATH: /opt/homebrew/lib/ruby/gems/3.3.0/bin:/opt/homebrew/opt/ruby@3.3/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/runner/.cargo/bin:/usr/local/opt/curl/bin:/opt/procursus/bin:/opt/procursus/libexec/gnubin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/Users/runner/.yarn/bin:/Users/runner/Library/Android/sdk/tools:/Users/runner/Library/Android/sdk/platform-tools:/Library/Frameworks/Python.framework/Versions/Current/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/usr/bin:/bin:/usr/sbin:/sbin:/Users/runner/.dotnet/tools
+    runs-on: macos-15
     steps:
     - name: Checkout
       id: Checkout
@@ -30,7 +32,7 @@ jobs:
       id: Update-Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: '14.1.0'
+        xcode-version: '26.2.0'
     - name: macOS Build
       id: macOS-Build
       run: |
@@ -82,9 +84,9 @@ jobs:
           image: debian:buster-slim
           options: -v ${{ github.workspace }}/..:/tmp/Builder/repos/
           run: |
-            /tmp/Builder/repos/futurerestore/.github/workflows/linux-bootstrap.sh
-            /tmp/Builder/repos/futurerestore/.github/workflows/linux-build.sh
-            /tmp/Builder/repos/futurerestore/.github/workflows/linux-post.sh
+            /tmp/Builder/repos/futurerestore/.github/workflows/linux-bootstrap.sh &&
+            /tmp/Builder/repos/futurerestore/.github/workflows/linux-build.sh &&
+            /tmp/Builder/repos/futurerestore/.github/workflows/linux-post.sh &&
             mkdir -p ${{ github.workspace }}/.github/workflows/
       - name: Linux x86_64 RELEASE Build
         id: Linux-x86_64-RELEASE-Build
