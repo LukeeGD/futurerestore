@@ -703,7 +703,7 @@ void futurerestore::enterPwnRecovery(plist_t build_identity, std::string bootarg
     }
 
     /* Patch bootloaders */
-    if (!cache1 && !cache2) {
+    if (!cache1 && !cache2 && _client->build_major < 22) {
         try {
             std::string board = getDeviceBoardNoCopy();
             info("Getting firmware keys for: %s\n", board.c_str());
