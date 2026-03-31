@@ -1,0 +1,6 @@
+976,977c976,977
+< 		error("ERROR: device didn't accept BasebandData\n");
+< 		return result;
+---
+> 		error("WARNING: device didn't accept BasebandData. Continuing anyway.\n");
+> 		//return result;

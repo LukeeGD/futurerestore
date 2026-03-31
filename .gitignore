@@ -3,7 +3,6 @@
 !dep_root/lib
 !dep_root/lib/.keep
 *.DS_Store
-*.diff
 *.in
 *.la
 *.lo
